@@ -1,0 +1,28 @@
+import mongoose from 'mongoose'
+import logger from '../ultis/logger.js'
+import config from './config.js'
+const { mongo } = config
+mongoose.Promise = global.Promise
+
+mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.name}`, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+const { connection } = mongoose
+
+connection.on('connected', () =>
+  logger.info('Database Connection was Successful')
+)
+connection.on('error', (err) =>
+  logger.error('Database Connection Failed' + err)
+)
+
+connection.on('disconnected', () =>
+  logger.info('Database Connection Disconnected')
+)
+
+process.on('SIGINT', () => {
+  connection.close()
+  logger.info('Database Connection closed due to NodeJs process termination')
+  process.exit(0)
+})

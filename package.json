@@ -12,6 +12,7 @@
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "lodash": "^4.17.21",
+    "mongoose": "^5.13.2",
     "nodemon": "^2.0.9",
     "trello": "^0.10.0",
     "winston": "^3.3.3"

@@ -1,19 +1,18 @@
 import bolt from '@slack/bolt'
-import dotenv from 'dotenv'
+import config from './configs/config.js'
 import { mentionHandler } from './features/tasks/tasks.controller.js'
+import logger from './ultis/logger.js'
 import receiver from './webhooks/index.js'
-
-dotenv.config()
-
+import('./configs/database.js')
 const { App, LogLevel } = bolt
 
 const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
+  token: config.slack.token,
   socketMode: false,
   receiver,
-  // developerMode: process.env.NODE_ENV === 'dev' ? true : false,
+  // developerMode: config.app.environment === 'dev' ? true : false,
   // LogLevel: LogLevel.DEBUG,
-  // appToken: process.env.APP_TOKEN,
+  // appToken: config.slack.appToken,
 })
 
 // listen message
@@ -24,7 +23,7 @@ const app = new App({
 // listen event
 
 app.error((error) => {
-  console.error(error)
+  return logger.error(error.message || JSON.stringify(error))
 })
 
 app.event('app_mention', async (action) => {
@@ -33,7 +32,7 @@ app.event('app_mention', async (action) => {
 
 // Start the app
 ;(async () => {
-  const PORT = process.env.PORT || 3000
+  const PORT = config.app.port || 3000
   await app.start(PORT)
 
   console.log(`⚡️ Bolt app is running at port ${PORT}!`)

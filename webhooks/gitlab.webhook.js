@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { getCardFromLink } from '../app/trello.js'
+import { getCardFromLink } from '../libs/trello.js'
 
 const router = Router()
 router.post('/webhook/gitlab', async (req, res) => {
