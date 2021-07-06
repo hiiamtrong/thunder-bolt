@@ -1,5 +1,6 @@
-import Trello from 'node-trello'
+import Trello from 'trello'
 import dotenv from 'dotenv'
+import axios from 'axios'
 dotenv.config()
 
 export const trello = new Trello(
@@ -17,12 +18,11 @@ export const createCard = ({ name, idList, desc, labels }) => {
             ## Input
             ## Test`,
     }
-    return trello.post('/1/cards', {
+    return trello.makeRequest('post', '/1/cards', {
       name,
-      idList,
       desc: desc || sample.desc,
-      pos: 'bottom',
-      idLabels: labels,
+      idList,
+      labels,
     })
   } catch (error) {
     throw error
@@ -30,7 +30,16 @@ export const createCard = ({ name, idList, desc, labels }) => {
 }
 
 export const moveCard = ({ cardId, idList }) => {
-  return trello.put(`/1/cards/${cardId}`, {
-    idList,
-  })
+  return trello.makeRequest('put', `/1/cards/${cardId}`, { idList })
+}
+
+export const getCardFromLink = async (link) => {
+  const res = await axios
+    .get(
+      `${link}?key=${process.env.TRELLO_APPLICATION_KEY}&token=${process.env.TRELLO_TOKEN}`
+    )
+    .catch((error) => {
+      throw error
+    })
+  return res.data
 }
