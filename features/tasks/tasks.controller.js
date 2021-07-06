@@ -1,6 +1,6 @@
 import { createCard, moveCard } from '../../app/trello.js'
 import { reply } from '../../helper.js'
-
+import _ from 'lodash'
 function replyWrongPattern(action, type) {
   switch (type){
     case 'help':
@@ -18,7 +18,7 @@ export const mentionHandler = async (action) => {
   // handle mention of task
   // oi doi oi Young Mother lam phien toi qua hic (❁´◡`❁)
   const { text } = action.payload
-  if(!text) {
+  if(_.trim(text).length === 14) {
     return replyWrongPattern(action)
   }
   const hasName = text.match(/name "(.*?)"/gi)
@@ -38,7 +38,7 @@ export const mentionHandler = async (action) => {
       board = hasBoard[0].replace(/ |board|"/g, '')
     }
     if(hasAssign){
-      assignId = text.match(/<@(.*?)>/gi)[0].replace(/<|>|@/g, '')
+      assignId = hasAssign[0].replace(/<|>|@| |assign/g, '')
     }
     if(hasType){
       type = hasType[0].replace(/ |type/g, '')
