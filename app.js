@@ -20,7 +20,7 @@ const app = new App({
 //   await reply(action, 'hello world')
 // })
 
-// lisen event
+// listen event
 
 app.error((error) => {
   console.error(error)
