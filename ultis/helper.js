@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import {getUserInfo} from '../libs/slack.js'
+import { getUserInfo } from '../libs/slack.js'
 export const reply = async (action, text) => {
   const { client } = action
   const { event } = action.body
@@ -11,13 +11,51 @@ export const reply = async (action, text) => {
     thread_ts: threadTs,
   })
 }
-export const replaceIdSlack = (text) => {
-  const allIdSlack = text.match(/<@(.*?)>/gi).join('').replace(/[<@>]/g,' ').split(' ')
-  Promise.each(allIdSlack, async (idSlack) => {
-    const userInfo = await getUserInfo({user: idSlack})
-    text.replace(new RegExp(`${idSlack}`), userInfo.real_name)
+export function getSlackIdsFromMessage(text) {
+  return replaceAll(getTaggedUsers(text).join(' '), /[<@>]/, '').split(/\s+/)
+}
+export function makeMap(collections, keyPath, value) {
+  if (!keyPath) throw new Error('`keyPath` for `makeMap` was not provided!')
+  return _.reduce(
+    collections,
+    (result, item) => {
+      const attr = _.get(item, keyPath)
+      let key = attr
+      if (_.isFunction(attr)) {
+        key = _.invoke(item, keyPath)
+      }
+      if (!key) throw new Error(`Không tìm thấy key cho ${item}`)
+      result[key] = value || item
+      return result
+    },
+    {}
+  )
+}
+
+export const replaceIdSlack = async (text) => {
+  const allSlackIds = _.uniq(getSlackIdsFromMessage(text))
+
+  const users = await Promise.all(
+    _.map(allSlackIds, (idSlack) => {
+      return getUserInfo(idSlack)
+    })
+  )
+  const usersMap = makeMap(users, 'id')
+
+  let transformText = text
+
+  _.forEach(allSlackIds, (slackId) => {
+    if (usersMap[slackId].real_name) {
+      transformText = replaceAll(
+        transformText,
+        /<@\w+>/gi,
+        `**@${usersMap[slackId].real_name}**`
+      )
+      console.log({ transformText })
+    }
   })
-  return text
+
+  return transformText
 }
 export const getThreadTS = (action) => {
   const { event } = action.body
@@ -29,5 +67,10 @@ export const getMentionUser = ({ payload }) => {
 }
 
 export const replaceAll = (string, matchPattern, replacement) => {
+  console.log(string)
   return string.split(matchPattern).join(replacement)
+}
+
+export const getTaggedUsers = (text) => {
+  return text.match(/<@(.*?)>/gi)
 }
