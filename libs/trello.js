@@ -4,17 +4,18 @@ import config from '../configs/config.js'
 
 export const trello = new Trello(config.trello.apiKey, config.trello.token)
 
-export const createCard = ({ name, idList, desc, labels }) => {
+export const createCard = ({ name, idList, desc, labels, idMembers }) => {
   try {
     const sample = {
       desc: `## Goal\n## Current Situation\n## Expectation\n## Deadline\n## Input\n## Test`,
     }
-    return trello.post('/1/cards', {
+    return trello.makeRequest('post','/1/cards', {
       name,
       idList,
       desc: desc || sample.desc,
       pos: 'bottom',
       idLabels: labels,
+      idMembers
     })
   } catch (error) {
     throw error
@@ -32,4 +33,14 @@ export const getCardFromLink = async (link) => {
       throw error
     })
   return res.data
+}
+
+export const addComment = async ({idCard, text}) => {
+  try {
+    return trello.makeRequest('post', `/1/cards/${idCard}/actions/comments`, {
+      text
+    })
+  } catch (err) {
+    throw err
+  }
 }

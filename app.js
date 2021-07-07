@@ -2,18 +2,8 @@ import bolt from '@slack/bolt'
 import config from './configs/config.js'
 import { mentionHandler } from './features/tasks/tasks.controller.js'
 import logger from './ultis/logger.js'
-import receiver from './webhooks/index.js'
 import('./configs/database.js')
-const { App, LogLevel } = bolt
-
-const app = new App({
-  token: config.slack.token,
-  socketMode: false,
-  receiver,
-  // developerMode: config.app.environment === 'dev' ? true : false,
-  // LogLevel: LogLevel.DEBUG,
-  // appToken: config.slack.appToken,
-})
+import app from './libs/slack.js'
 
 // listen message
 // app.message(async (action) => {

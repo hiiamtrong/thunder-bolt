@@ -4,7 +4,7 @@ export default {
   create: asyncHandler(async (body) => {
     const { id, name, desc, shortUrl, threadTs } = body
     const card = new Card({
-      cardId: id,
+      idCard: id,
       name,
       description: desc,
       url: shortUrl,

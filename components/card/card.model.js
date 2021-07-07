@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 const { Schema } = mongoose
 const CardSchema = Schema(
   {
-    cardId: {
+    idCard: {
       type: String,
       required: true,
       unique: true,
@@ -23,6 +23,6 @@ const CardSchema = Schema(
   },
   { timestamps: true }
 )
-CardSchema.index({ cardId: 1 }, { unique: true })
+CardSchema.index({ idCard: 1 }, { unique: true })
 
 export default mongoose.model('Card', CardSchema)

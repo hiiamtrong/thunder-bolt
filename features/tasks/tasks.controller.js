@@ -4,8 +4,15 @@ import {
   getThreadTS,
   replaceAll,
   reply,
+  replaceIdSlack
 } from '../../ultis/helper.js'
-import { createCard } from '../../libs/trello.js'
+import { createCard, addComment } from '../../libs/trello.js'
+import {getConversation} from '../../libs/slack.js'
+import _ from 'lodash';
+import Board from '../../components/board/board.model.js'
+import User from '../../components/user/user.model.js'
+import List from '../../components/list/list.model.js'
+
 
 function replyWrongPattern(action, type) {
   const mentionUser = getMentionUser(action)
@@ -19,7 +26,7 @@ function replyWrongPattern(action, type) {
     '*type* [1,2,3]: *Không bắt buộc*.\n',
     '*Ví dụ*: @taskbot type=2 name "This is a normal task."',
     '• *Trợ giúp*',
-    '@taskbot *help*',
+    '@taskbot *help*/*h*',
   ].join('\n')
 
   switch (type) {
@@ -31,17 +38,17 @@ function replyWrongPattern(action, type) {
     case 'missing_require':
       return reply(
         action,
-        'Thiếu name roài nhé, gõ --help hoặc -h để được hướng dẫn'
+        'Thiếu name roài nhé, gõ help hoặc h để được hướng dẫn'
       )
     default:
-      return reply(action, 'Gõ --h hoặc --help để được hướng dẫn nhé')
+      return reply(action, 'Gõ h hoặc help để được hướng dẫn nhé')
   }
 }
 
 export const mentionHandler = async (action) => {
   // handle mention of task
-  // oi doi oi Young Mother lam phien toi qua hic (❁´◡`❁)
-  const { text } = action.payload
+  // chi muon ngay nang len de dc gap em, quen di moi uu phien moi khi em ve
+  const { text, channel, thread_ts } = action.payload
   if (_.trim(text).length === 14) {
     return replyWrongPattern(action)
   }
@@ -49,42 +56,50 @@ export const mentionHandler = async (action) => {
   const hasAssign = text.match(/assign\s(<@\w.*> ?)+/gi)
   const hasType = text.match(/type \d/gi)
   const hasBoard = text.match(/board "(.*?)"/gi)
-  const isHelp = text.match(/--help|--h/gi)
+  const isHelp = text.match(/^help|^h/gi)
 
   if (isHelp) {
     return replyWrongPattern(action, 'help')
   }
-
   if (hasName) {
-    const name = hasName[0].replace(/"|name| /g, '')
-    let assignIds
+    const name = _.trim(hasName[0].replace(/"|name/g, ''))
+    let board = "TECH"
+    let assignIds = []
     let type
-    let board
     if (hasBoard) {
-      board = hasBoard[0].replace(/ |board|"/g, '')
+      board = _.trim(hasBoard[0].replace(/board|"/g, ''))
     }
 
-    if (hasAssign.length) {
+    if (_.get(hasAssign, 'length')) {
       assignIds = replaceAll(
         hasAssign[0].match(/<@(.*?)>/gi).join(' '),
         /[<@>]/,
         ''
       ).split(/\s+/)
     }
-
     if (hasType) {
-      type = hasType[0].replace(/ |type/g, '')
+      type = _.trim(hasType[0].replace(/type/g, ''))
     }
 
-    if (type && !assignIds.length) {
+    if (type && !_.get(assignIds, 'length')) {
       return replyWrongPattern(action, 'missing_id')
     }
-
-    const idList = '60e4810ce0d14d7bedc7b8ed'
-    const card = await createCard({ name, idList })
-
-    await cardController.create({ ...card, threadTs: getThreadTS(action) })
-    return reply(action, JSON.stringify({ name, assignId, type, board }))
+    if(_.get(assignIds, 'length')){
+      const matchAssignUser = await User.find({idSlack: {$in: assignIds}}).select('idTrello').lean()
+      assignIds = _.map(matchAssignUser, 'idTrello')
+    }
+    const matchBoard = await Board.findOne({code: board}).populate('defaultList', 'idList').lean()
+    const card = await createCard({ name, idList: matchBoard.defaultList.idList, idMembers: assignIds})
+    
+    const resCard = await cardController.create({ ...card, threadTs: getThreadTS(action) })
+    if(!resCard){
+      return reply(action, 'Có lỗi hok mong mún :<')
+    }
+    const messages = await getConversation({channel, ts:thread_ts})
+    let text = _.map(messages, 'text').join('\n')
+    text = await replaceIdSlack(text)
+    await addComment({idCard: resCard.idCard, text})
+    return reply(action, `Tạo card thành công (<${resCard.url}|Trello>) ${hasAssign ? hasAssign.join('').replace('assign', ''): ''}`)
   }
   return replyWrongPattern(action, 'missing_require')
 }
