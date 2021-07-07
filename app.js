@@ -1,9 +1,8 @@
-import bolt from '@slack/bolt'
 import config from './configs/config.js'
 import { mentionHandler } from './features/tasks/tasks.controller.js'
+import app from './libs/slack.js'
 import logger from './ultis/logger.js'
 import('./configs/database.js')
-import app from './libs/slack.js'
 
 // listen message
 // app.message(async (action) => {
@@ -13,7 +12,7 @@ import app from './libs/slack.js'
 // listen event
 
 app.error((error) => {
-  return logger.error(error.message || JSON.stringify(error))
+  return logger.error(error.stack || error.message || JSON.stringify(error))
 })
 
 app.event('app_mention', async (action) => {

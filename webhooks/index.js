@@ -17,7 +17,7 @@ receiver.router.use(trello)
 receiver.router.use(errorhandler({ log: errorNotification }))
 
 function errorNotification(err, str, req) {
-  return logger.error(err.message || JSON.stringify(err))
+  return logger.error(err.stack || err.message || JSON.stringify(err))
 }
 
 export default receiver

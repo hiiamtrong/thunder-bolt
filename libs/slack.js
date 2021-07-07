@@ -2,6 +2,7 @@ import bolt from '@slack/bolt'
 import config from '../configs/config.js'
 import receiver from '../webhooks/index.js'
 const { App, LogLevel } = bolt
+import _ from 'lodash'
 
 export const app = new App({
   token: config.slack.token,
@@ -34,5 +35,13 @@ export const getUserInfo = async (user) => {
   } catch (err) {
     throw err
   }
+}
+
+export const react = async ({ channel, ts, reacts }) => {
+  return Promise.all(
+    _.map(reacts, (react) => {
+      return app.client.reactions.add({ channel, timestamp: ts, name: react })
+    })
+  )
 }
 export default app

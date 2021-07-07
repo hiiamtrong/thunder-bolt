@@ -11,7 +11,7 @@ export const reply = async (action, text) => {
     thread_ts: threadTs,
   })
 }
-export function getSlackIdsFromMessage(text) {
+export const getSlackIdsFromMessage = (text) => {
   return replaceAll(getTaggedUsers(text).join(' '), /[<@>]/, '').split(/\s+/)
 }
 export function makeMap(collections, keyPath, value) {
@@ -48,10 +48,9 @@ export const replaceIdSlack = async (text) => {
     if (usersMap[slackId].real_name) {
       transformText = replaceAll(
         transformText,
-        /<@\w+>/gi,
+        `<@${slackId}>`,
         `**@${usersMap[slackId].real_name}**`
       )
-      console.log({ transformText })
     }
   })
 
@@ -67,10 +66,13 @@ export const getMentionUser = ({ payload }) => {
 }
 
 export const replaceAll = (string, matchPattern, replacement) => {
-  console.log(string)
   return string.split(matchPattern).join(replacement)
 }
 
 export const getTaggedUsers = (text) => {
   return text.match(/<@(.*?)>/gi)
+}
+
+export const getBotUserId = (action) => {
+  return action.context.botUserId
 }

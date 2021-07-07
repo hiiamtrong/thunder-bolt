@@ -10,11 +10,10 @@ const BoardSchema = Schema(
     code: { type: String, required: true },
     defaultList: {
       type: Schema.Types.ObjectId,
-      ref: 'List'
-    }
+      ref: 'List',
+    },
   },
   { timestamps: true }
 )
-BoardSchema.index({ cardId: 1 }, { unique: true })
 
 export default mongoose.model('Board', BoardSchema)

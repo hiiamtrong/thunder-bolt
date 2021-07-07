@@ -11,6 +11,5 @@ const ListSchema = Schema(
   },
   { timestamps: true }
 )
-ListSchema.index({ cardId: 1 }, { unique: true })
 
 export default mongoose.model('List', ListSchema)
