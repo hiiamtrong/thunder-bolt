@@ -23,9 +23,9 @@ function replyWrongPattern(action, type) {
     '*board* "Tên của Board": *Không bắt buộc* mặc định là *TECH*.',
     '*assign* @user1 @user2: *Bắt buộc khi type=3*.',
     '*type* [1,2,3] tương ứng [_minor_, _normal_, _critical_]: *Không bắt buộc*.\n',
-    '*Ví dụ*: @taskbot type=2 name "This is a normal task."',
+    `*Ví dụ*: <@${getBotUserId(action)}>  type 2 name "This is a normal task."`,
     '• *Trợ giúp*',
-    '@taskbot *help*/*h*',
+    `<@${getBotUserId(action)}> *help*/*h*`,
   ].join('\n')
 
   switch (type) {
@@ -91,7 +91,7 @@ export const createTask = async (action, matchName) => {
     type = _.trim(hasType[0].replace(/type/g, ''))
   }
 
-  if (type && !_.get(assignIds, 'length')) {
+  if (type === 3 && !_.get(assignIds, 'length')) {
     return replyWrongPattern(action, 'missing_id')
   }
 
@@ -124,7 +124,7 @@ export const createTask = async (action, matchName) => {
 
   let message = _.map(messages, 'text').join('\n')
   const transformMessage = await replaceIdSlack(message)
-
+  console.log(transformMessage)
   return Promise.all([
     reply(
       action,

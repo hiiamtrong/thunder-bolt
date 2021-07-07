@@ -76,3 +76,6 @@ export const getTaggedUsers = (text) => {
 export const getBotUserId = (action) => {
   return action.context.botUserId
 }
+export const getBotId = (action) => {
+  return action.context.botId
+}

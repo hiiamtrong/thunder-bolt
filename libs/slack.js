@@ -44,4 +44,8 @@ export const react = async ({ channel, ts, reacts }) => {
     })
   )
 }
+export const getBotInfo = async (botId) => {
+  return app.client.bots.info({ bot: botId })
+}
+
 export default app
