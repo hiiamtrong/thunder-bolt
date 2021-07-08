@@ -20,6 +20,7 @@ const CardSchema = Schema(
     },
     description: String,
     done: Date,
+    channel: String,
   },
   { timestamps: true },
 );

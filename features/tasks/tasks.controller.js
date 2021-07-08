@@ -115,6 +115,7 @@ export const createTask = async (action, matchName) => {
   const resCard = await cardController.create({
     ...card,
     threadTs: getThreadTS(action),
+    channel,
   });
 
   if (!resCard) {
@@ -151,7 +152,7 @@ export const createTask = async (action, matchName) => {
     createWebhook({
       idModel: card.id,
       description: card.mshortUrl,
-      callbackURL: 'https://3d7f409c40ac.ngrok.io/webhook/trello',
+      callbackURL: 'http://4385195d2f3d.ngrok.io/webhook/trello',
     }),
   ]);
 };
