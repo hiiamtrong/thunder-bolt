@@ -58,22 +58,6 @@ export const replyInThread = async ({ channel, text, thread_ts }) => {
   });
 };
 
-export const handleMergedGitLab = async ({ id }) => {
-  const card = await Card.findOne({ idCard: id })
-    .select('threadTs channel name')
-    .lean();
-  if (!card) {
-    throw new Error('Không tìm thấy card');
-  }
-  const reply = `:tech: Task *${card.name}* đã được làm xong rồi nhé!`;
-
-  return replyInThread({
-    channel: card.channel,
-    text: reply,
-    thread_ts: card.threadTs,
-  });
-};
-
 export const handleChangeDueDate = async ({ due, name, type, id }) => {
   const card = await Card.findOne({ idCard: id })
     .select('threadTs channel')

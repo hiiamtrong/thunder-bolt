@@ -2,7 +2,11 @@ import _ from 'lodash';
 import Board from '../../components/board/board.model.js';
 import cardController from '../../components/card/card.controller.js';
 import User from '../../components/user/user.model.js';
-import { getConversation, postReacts } from '../../libs/slack.js';
+import {
+  getConversation,
+  postReacts,
+  handleMergedGitLab,
+} from '../../libs/slack.js';
 import { addComment, createCard, createWebhook } from '../../libs/trello.js';
 import {
   getBotUserId,
