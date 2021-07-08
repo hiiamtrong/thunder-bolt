@@ -85,8 +85,8 @@ export const handleChangeDueDate = async ({ due, name, type, id }) => {
   const reply =
     type === 'action_changed_a_due_date'
       ? [
-          `:calendar: Task ${name} đã thay đổi deadline.`,
-          `Thời gian dự kiến hoàn thành mới sẽ vào ${day}.\n`,
+          `:calendar: Task *${name}* đã thay đổi deadline.`,
+          `Thời gian dự kiến hoàn thành mới sẽ vào *${day}*.\n`,
           `:bell: Bạn sẽ nhận được thông báo khi task hoàn thành.`,
         ]
       : [
