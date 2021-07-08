@@ -44,3 +44,12 @@ export const addComment = async ({ idCard, text }) => {
     throw err
   }
 }
+
+export const createWebhook = async ({ idModel, description, callbackURL }) => {
+  const endpoint = `https://api.trello.com/1/tokens/${config.trello.token}/webhooks?${config.trello.apiKey}`
+  return axios.post(endpoint, {
+    description,
+    idModel,
+    callbackURL,
+  })
+}

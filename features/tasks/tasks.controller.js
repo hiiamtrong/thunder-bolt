@@ -3,7 +3,7 @@ import Board from '../../components/board/board.model.js'
 import cardController from '../../components/card/card.controller.js'
 import User from '../../components/user/user.model.js'
 import { getConversation, postReacts } from '../../libs/slack.js'
-import { addComment, createCard } from '../../libs/trello.js'
+import { addComment, createCard, createWebhook } from '../../libs/trello.js'
 import {
   getBotUserId,
   getMentionUser,
@@ -148,5 +148,10 @@ export const createTask = async (action, matchName) => {
       reacts: ['card_index'],
     }),
     addComment({ idCard: resCard.idCard, text: transformMessage }),
+    createWebhook({
+      idModel: card.id,
+      description: card.mshortUrl,
+      callbackURL: 'https://3d7f409c40ac.ngrok.io/webhook/trello',
+    }),
   ])
 }
