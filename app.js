@@ -14,7 +14,7 @@ import('./configs/database.js');
 
 app.error(error => {
   return logger.error(error.stack || error.message || JSON.stringify(error));
-});
+})
 
 app.event('app_mention', async action => {
   await mentionHandler(action);
