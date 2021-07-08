@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-const { Schema } = mongoose
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 const BoardSchema = Schema(
   {
     idBoard: {
@@ -25,7 +25,7 @@ const BoardSchema = Schema(
       },
     ],
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.model('Board', BoardSchema)
+export default mongoose.model('Board', BoardSchema);

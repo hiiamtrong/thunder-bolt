@@ -1,5 +1,5 @@
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from 'dotenv';
+dotenv.config();
 
 export default {
   app: {
@@ -21,4 +21,4 @@ export default {
     apiKey: process.env.TRELLO_APPLICATION_KEY,
     token: process.env.TRELLO_TOKEN,
   },
-}
+};

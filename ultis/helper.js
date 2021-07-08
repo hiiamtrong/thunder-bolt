@@ -1,87 +1,87 @@
-import _ from 'lodash'
-import { getUserInfo } from '../libs/slack.js'
+import _ from 'lodash';
+import { getUserInfo } from '../libs/slack.js';
 export const reply = async (action, text) => {
-  const { client } = action
-  const { event } = action.body
-  let threadTs = getThreadTS(action)
+  const { client } = action;
+  const { event } = action.body;
+  let threadTs = getThreadTS(action);
 
   await client.chat.postMessage({
     channel: event.channel,
     text: text,
     thread_ts: threadTs,
-  })
-}
-export const getSlackIdsFromMessage = (text) => {
-  return replaceAll(getTaggedUsers(text).join(' '), /[<@>]/, '').split(/\s+/)
-}
+  });
+};
+export const getSlackIdsFromMessage = text => {
+  return replaceAll(getTaggedUsers(text).join(' '), /[<@>]/, '').split(/\s+/);
+};
 export function makeMap(collections, keyPath, value) {
-  if (!keyPath) throw new Error('`keyPath` for `makeMap` was not provided!')
+  if (!keyPath) throw new Error('`keyPath` for `makeMap` was not provided!');
   return _.reduce(
     collections,
     (result, item) => {
-      const attr = _.get(item, keyPath)
-      let key = attr
+      const attr = _.get(item, keyPath);
+      let key = attr;
       if (_.isFunction(attr)) {
-        key = _.invoke(item, keyPath)
+        key = _.invoke(item, keyPath);
       }
-      if (!key) throw new Error(`Không tìm thấy key cho ${item}`)
-      result[key] = value || item
-      return result
+      if (!key) throw new Error(`Không tìm thấy key cho ${item}`);
+      result[key] = value || item;
+      return result;
     },
-    {}
-  )
+    {},
+  );
 }
 
-export const replaceIdSlack = async (text) => {
-  const allSlackIds = _.uniq(getSlackIdsFromMessage(text))
+export const replaceIdSlack = async text => {
+  const allSlackIds = _.uniq(getSlackIdsFromMessage(text));
 
   const users = await Promise.all(
-    _.map(allSlackIds, (idSlack) => {
-      return getUserInfo(idSlack)
-    })
-  )
-  const usersMap = makeMap(users, 'id')
+    _.map(allSlackIds, idSlack => {
+      return getUserInfo(idSlack);
+    }),
+  );
+  const usersMap = makeMap(users, 'id');
 
-  let transformText = text
+  let transformText = text;
 
-  _.forEach(allSlackIds, (slackId) => {
+  _.forEach(allSlackIds, slackId => {
     if (usersMap[slackId].real_name) {
       transformText = replaceAll(
         transformText,
         `<@${slackId}>`,
-        `**@${usersMap[slackId].real_name}**`
-      )
+        `**@${usersMap[slackId].real_name}**`,
+      );
     }
-  })
+  });
 
-  return transformText
-}
-export const getThreadTS = (action) => {
-  const { event } = action.body
-  return _.get(event, 'thread_ts', event.ts)
-}
+  return transformText;
+};
+export const getThreadTS = action => {
+  const { event } = action.body;
+  return _.get(event, 'thread_ts', event.ts);
+};
 
 export const getMentionUser = ({ payload }) => {
-  return payload.user
-}
+  return payload.user;
+};
 
 export const replaceAll = (string, matchPattern, replacement) => {
-  return string.split(matchPattern).join(replacement)
-}
+  return string.split(matchPattern).join(replacement);
+};
 
-export const getTaggedUsers = (text) => {
-  return text.match(/<@(.*?)>/gi)
-}
+export const getTaggedUsers = text => {
+  return text.match(/<@(.*?)>/gi);
+};
 
-export const getBotUserId = (action) => {
-  return action.context.botUserId
-}
-export const getBotId = (action) => {
-  return action.context.botId
-}
+export const getBotUserId = action => {
+  return action.context.botUserId;
+};
+export const getBotId = action => {
+  return action.context.botId;
+};
 
-export const helperMenu = (action) => {
-  const mentionUser = getMentionUser(action)
+export const helperMenu = action => {
+  const mentionUser = getMentionUser(action);
 
   const helperPattern = [
     `<@${mentionUser}>`,
@@ -93,6 +93,6 @@ export const helperMenu = (action) => {
     `*Ví dụ*: <@${getBotUserId(action)}>  type 2 name "This is a normal task."`,
     '• *Trợ giúp*',
     `<@${getBotUserId(action)}> *help*/*h*`,
-  ].join('\n')
-  return helperPattern
-}
+  ].join('\n');
+  return helperPattern;
+};

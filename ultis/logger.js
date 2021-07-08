@@ -1,8 +1,8 @@
-import path from 'path'
-import winston from 'winston'
-import config from '../configs/config.js'
+import path from 'path';
+import winston from 'winston';
+import config from '../configs/config.js';
 
-const __dirname = path.resolve(path.dirname(''))
+const __dirname = path.resolve(path.dirname(''));
 
 const logger = winston.createLogger({
   format: winston.format.combine(
@@ -13,11 +13,11 @@ const logger = winston.createLogger({
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm',
     }),
-    winston.format.printf((log) => {
+    winston.format.printf(log => {
       return `[${log.timestamp}] [${log.level}] ${
         log.stack ? log.stack : log.message
-      }`
-    })
+      }`;
+    }),
   ),
   transports: [
     new winston.transports.Console(),
@@ -29,6 +29,6 @@ const logger = winston.createLogger({
       filename: path.join(__dirname, 'all.log'),
     }),
   ],
-})
+});
 
-export default logger
+export default logger;

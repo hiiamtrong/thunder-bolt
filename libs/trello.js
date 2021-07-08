@@ -1,14 +1,14 @@
-import axios from 'axios'
-import Trello from 'trello'
-import config from '../configs/config.js'
+import axios from 'axios';
+import Trello from 'trello';
+import config from '../configs/config.js';
 
-export const trello = new Trello(config.trello.apiKey, config.trello.token)
+export const trello = new Trello(config.trello.apiKey, config.trello.token);
 
 export const createCard = ({ name, idList, desc, labels, idMembers }) => {
   try {
     const sample = {
       desc: `## Goal\n## Current Situation\n## Expectation\n## Deadline\n## Input\n## Test`,
-    }
+    };
     return trello.makeRequest('post', '/1/cards', {
       name,
       idList,
@@ -16,40 +16,33 @@ export const createCard = ({ name, idList, desc, labels, idMembers }) => {
       pos: 'bottom',
       idLabels: labels,
       idMembers,
-    })
+    });
   } catch (error) {
-    throw error
+    throw error;
   }
-}
+};
 
-export const moveCard = ({ cardId, idList }) => {
-  return trello.makeRequest('put', `/1/cards/${cardId}`, { idList })
-}
+export const moveCard = ({ idCard, idList }) => {
+  return trello.updateCardList(idCard, idList);
+};
 
-export const getCardFromLink = async (link) => {
+export const getCardFromLink = async link => {
   const res = await axios
     .get(`${link}?key=${config.trello.apiKey}&token=${config.trello.token}`)
-    .catch((error) => {
-      throw error
-    })
-  return res.data
-}
+    .catch(error => {
+      throw error;
+    });
+  return res.data;
+};
 
 export const addComment = async ({ idCard, text }) => {
   try {
-    return trello.makeRequest('post', `/1/cards/${idCard}/actions/comments`, {
-      text,
-    })
+    return trello.addCommentToCard(idCard, text);
   } catch (err) {
-    throw err
+    throw err;
   }
-}
+};
 
 export const createWebhook = async ({ idModel, description, callbackURL }) => {
-  const endpoint = `https://api.trello.com/1/tokens/${config.trello.token}/webhooks?${config.trello.apiKey}`
-  return axios.post(endpoint, {
-    description,
-    idModel,
-    callbackURL,
-  })
-}
+  return trello.addWebhook(description, callbackURL, idModel);
+};

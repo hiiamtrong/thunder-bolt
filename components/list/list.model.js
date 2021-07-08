@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-const { Schema } = mongoose
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 const ListSchema = Schema(
   {
     idList: {
@@ -9,7 +9,7 @@ const ListSchema = Schema(
     },
     name: { type: String, required: true },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.model('List', ListSchema)
+export default mongoose.model('List', ListSchema);

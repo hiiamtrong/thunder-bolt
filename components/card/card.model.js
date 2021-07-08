@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-const { Schema } = mongoose
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 const CardSchema = Schema(
   {
     idCard: {
@@ -21,8 +21,8 @@ const CardSchema = Schema(
     description: String,
     done: Date,
   },
-  { timestamps: true }
-)
-CardSchema.index({ idCard: 1 }, { unique: true })
+  { timestamps: true },
+);
+CardSchema.index({ idCard: 1 }, { unique: true });
 
-export default mongoose.model('Card', CardSchema)
+export default mongoose.model('Card', CardSchema);

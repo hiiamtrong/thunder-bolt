@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-const { Schema } = mongoose
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
 const LabelSchema = Schema(
   {
     idLabel: {
@@ -9,7 +9,7 @@ const LabelSchema = Schema(
     },
     name: { type: String },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.model('Label', LabelSchema)
+export default mongoose.model('Label', LabelSchema);
