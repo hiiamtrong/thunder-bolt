@@ -37,7 +37,7 @@ export const getUserInfo = async (user) => {
   }
 }
 
-export const react = async ({ channel, ts, reacts }) => {
+export const postReacts = async ({ channel, ts, reacts }) => {
   return Promise.all(
     _.map(reacts, (react) => {
       return app.client.reactions.add({ channel, timestamp: ts, name: react })

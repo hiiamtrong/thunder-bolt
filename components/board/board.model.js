@@ -12,6 +12,18 @@ const BoardSchema = Schema(
       type: Schema.Types.ObjectId,
       ref: 'List',
     },
+    specialLabels: [
+      {
+        code: {
+          type: Number,
+          required: true,
+        },
+        label: {
+          type: Schema.Types.ObjectId,
+          ref: 'Label',
+        },
+      },
+    ],
   },
   { timestamps: true }
 )

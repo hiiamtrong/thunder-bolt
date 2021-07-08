@@ -9,13 +9,13 @@ export const createCard = ({ name, idList, desc, labels, idMembers }) => {
     const sample = {
       desc: `## Goal\n## Current Situation\n## Expectation\n## Deadline\n## Input\n## Test`,
     }
-    return trello.makeRequest('post','/1/cards', {
+    return trello.makeRequest('post', '/1/cards', {
       name,
       idList,
       desc: desc || sample.desc,
       pos: 'bottom',
       idLabels: labels,
-      idMembers
+      idMembers,
     })
   } catch (error) {
     throw error
@@ -35,10 +35,10 @@ export const getCardFromLink = async (link) => {
   return res.data
 }
 
-export const addComment = async ({idCard, text}) => {
+export const addComment = async ({ idCard, text }) => {
   try {
     return trello.makeRequest('post', `/1/cards/${idCard}/actions/comments`, {
-      text
+      text,
     })
   } catch (err) {
     throw err

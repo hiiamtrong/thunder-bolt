@@ -79,3 +79,20 @@ export const getBotUserId = (action) => {
 export const getBotId = (action) => {
   return action.context.botId
 }
+
+export const helperMenu = (action) => {
+  const mentionUser = getMentionUser(action)
+
+  const helperPattern = [
+    `<@${mentionUser}>`,
+    '• *Tạo card*',
+    '*name* "Tên của card": *Bắt buộc*.',
+    '*board* "Tên của Board": *Không bắt buộc* mặc định là *TECH*.',
+    '*assign* @user1 @user2: *Bắt buộc khi type=3*.',
+    '*type* [1,2,3] tương ứng [_minor_, _normal_, _critical_]: *Không bắt buộc*.\n',
+    `*Ví dụ*: <@${getBotUserId(action)}>  type 2 name "This is a normal task."`,
+    '• *Trợ giúp*',
+    `<@${getBotUserId(action)}> *help*/*h*`,
+  ].join('\n')
+  return helperPattern
+}

@@ -2,13 +2,14 @@ import _ from 'lodash'
 import Board from '../../components/board/board.model.js'
 import cardController from '../../components/card/card.controller.js'
 import User from '../../components/user/user.model.js'
-import { getConversation, react } from '../../libs/slack.js'
+import { getConversation, postReacts } from '../../libs/slack.js'
 import { addComment, createCard } from '../../libs/trello.js'
 import {
   getBotUserId,
   getMentionUser,
   getSlackIdsFromMessage,
   getThreadTS,
+  helperMenu,
   replaceIdSlack,
   reply,
 } from '../../ultis/helper.js'
@@ -16,22 +17,10 @@ import {
 function replyWrongPattern(action, type) {
   const mentionUser = getMentionUser(action)
 
-  const helperPattern = [
-    `<@${mentionUser}>`,
-    '• *Tạo card*',
-    '*name* "Tên của card": *Bắt buộc*.',
-    '*board* "Tên của Board": *Không bắt buộc* mặc định là *TECH*.',
-    '*assign* @user1 @user2: *Bắt buộc khi type=3*.',
-    '*type* [1,2,3] tương ứng [_minor_, _normal_, _critical_]: *Không bắt buộc*.\n',
-    `*Ví dụ*: <@${getBotUserId(action)}>  type 2 name "This is a normal task."`,
-    '• *Trợ giúp*',
-    `<@${getBotUserId(action)}> *help*/*h*`,
-  ].join('\n')
-
   switch (type) {
     case 'help':
     case 'missing_require':
-      return reply(action, helperPattern)
+      return reply(action, helperMenu(action))
     case 'missing_id':
       return reply(action, `<@${mentionUser}> Type *critical* yêu cầu assign`)
     case 'missing_require':
@@ -91,7 +80,7 @@ export const createTask = async (action, matchName) => {
     type = _.trim(hasType[0].replace(/type/g, ''))
   }
 
-  if (type === 3 && !_.get(assignIds, 'length')) {
+  if (+type === 3 && !_.get(assignIds, 'length')) {
     return replyWrongPattern(action, 'missing_id')
   }
 
@@ -104,11 +93,23 @@ export const createTask = async (action, matchName) => {
 
   const matchBoard = await Board.findOne({ code: board })
     .populate('defaultList', 'idList')
+    .populate('specialLabels.label', 'idLabel')
     .lean()
+
+  const matchLabel = _.find(_.get(matchBoard, 'specialLabels'), (label) => {
+    return label.code === +type
+  })
+
+  let labels = []
+  if (matchLabel) {
+    labels = [_.get(matchLabel, 'label.idLabel')]
+  }
+
   const card = await createCard({
     name,
     idList: matchBoard.defaultList.idList,
     idMembers: assignIds,
+    labels,
   })
 
   const resCard = await cardController.create({
@@ -141,7 +142,7 @@ export const createTask = async (action, matchName) => {
         }`,
       ].join('\n')
     ),
-    react({
+    postReacts({
       channel,
       ts: getThreadTS(action),
       reacts: ['card_index'],
