@@ -26,7 +26,7 @@ function replyWrongPattern(action, type) {
     default:
       return reply(
         action,
-        `<@${mentionUser}> Gõ h hoặc help để được hướng dẫn nhé`,
+        `<@${mentionUser}> Lệnh không tồn tại, gõ h hoặc help để được hướng dẫn nhé`,
       );
   }
 }
@@ -50,6 +50,7 @@ export const mentionHandler = async action => {
   if (matchName) {
     return createTask(action, matchName);
   }
+  return replyWrongPattern(action);
 };
 
 export const createTask = async (action, matchName) => {
