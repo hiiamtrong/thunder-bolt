@@ -4,7 +4,7 @@ import config from './config.js';
 const { mongo } = config;
 mongoose.Promise = global.Promise;
 
-mongoose.connect(`mongodb://${mongo.host}:${mongo.port}/${mongo.name}`, {
+mongoose.connect(mongo.url, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
