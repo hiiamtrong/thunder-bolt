@@ -7,20 +7,44 @@
   "dependencies": {
     "@slack/bolt": "^3.4.0",
     "axios": "^0.21.1",
+    "dayjs": "^1.10.6",
     "dotenv": "^10.0.0",
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
     "lodash": "^4.17.21",
+    "mongoose": "^5.13.2",
     "nodemon": "^2.0.9",
     "trello": "^0.10.0",
     "winston": "^3.3.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^7.30.0",
+    "husky": "^7.0.1",
+    "lint-staged": "^11.0.0",
+    "prettier": "2.3.2"
+  },
   "scripts": {
     "start": "node app.js",
     "start:dev": "nodemon app.js",
+    "format": "prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "yarn format"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "git add"
+    ],
+    "*.{html,css,less,ejs}": [
+      "prettier --write",
+      "git add"
+    ]
   },
   "keywords": [],
   "author": "",

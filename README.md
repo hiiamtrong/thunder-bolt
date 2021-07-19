@@ -37,21 +37,21 @@ npm install @slack/bolt
 Create an app by calling the constructor, which is a top-level export.
 
 ```js
-const { App } = require('@slack/bolt')
+const { App } = require('@slack/bolt');
 
 const app = new App({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   token: process.env.SLACK_BOT_TOKEN,
-})
+});
 
 /* Add functionality here */
 
-;(async () => {
+(async () => {
   // Start the app
-  await app.start(process.env.PORT || 3000)
+  await app.start(process.env.PORT || 3000);
 
-  console.log('⚡️ Bolt app is running!')
-})()
+  console.log('⚡️ Bolt app is running!');
+})();
 ```
 
 > ⚙️ By default, Bolt listens to the `/slack/events` endpoint for _all_ incoming requests (whether shortcuts, events, or actions payloads). When configuring Request URLs in your app configuration, they should all have `/slack/events` appended. The default behavior be modified using the constructor's `endpoints` parameter.
@@ -107,9 +107,9 @@ The arguments are grouped into properties of one object, so that it's easier to 
 ```js
 // Reverse all messages the app can hear
 app.message(async ({ message, say }) => {
-  const reversedText = [...message.text].reverse().join('')
-  await say(reversedText)
-})
+  const reversedText = [...message.text].reverse().join('');
+  await say(reversedText);
+});
 ```
 
 ### Calling the Web API

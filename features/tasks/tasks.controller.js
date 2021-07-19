@@ -1,53 +1,153 @@
-import { createCard, moveCard } from '../../app/trello.js'
-import { reply } from '../../helper.js'
-import _ from 'lodash'
+import _ from 'lodash';
+import Board from '../../components/board/board.model.js';
+import cardController from '../../components/card/card.controller.js';
+import User from '../../components/user/user.model.js';
+import { getConversation, postReacts } from '../../libs/slack.js';
+import { addComment, createCard, createWebhook } from '../../libs/trello.js';
+import {
+  getBotUserId,
+  getMentionUser,
+  getSlackIdsFromMessage,
+  getThreadTS,
+  helperMenu,
+  replaceIdSlack,
+  reply,
+} from '../../ultis/helper.js';
+
 function replyWrongPattern(action, type) {
-  switch (type){
+  const mentionUser = getMentionUser(action);
+
+  switch (type) {
     case 'help':
-      return reply(action, 'Cấu trúc câu lệnh task gồm \n*name* "..." assign @Truong type 1 board "..." \n(In *đậm* là bắt buộc, type có 3 loại 1/2/3))')
-    case 'missing_id':
-      return reply(action, 'Type 3 yêu cầu assign')
     case 'missing_require':
-      return reply(action, 'Thiếu name roài nhé, gõ --help hoặc -h để được hướng dẫn')
+      return reply(action, helperMenu(action));
+    case 'missing_id':
+      return reply(action, `<@${mentionUser}> Type *critical* yêu cầu assign`);
     default:
-      return reply(action, 'Gõ --h hoặc --help để được hướng dẫn nhé')
+      return reply(
+        action,
+        `<@${mentionUser}> Gõ h hoặc help để được hướng dẫn nhé`,
+      );
   }
 }
 
-export const mentionHandler = async (action) => {
+export const mentionHandler = async action => {
   // handle mention of task
-  // oi doi oi Young Mother lam phien toi qua hic (❁´◡`❁)
-  const { text } = action.payload
-  if(_.trim(text).length === 14) {
-    return replyWrongPattern(action)
+  // chi muon ngay nang len de dc gap em, quen di moi uu phien moi khi em ve
+  const { text } = action.payload;
+  if (_.trim(text).length === 14) {
+    return replyWrongPattern(action);
   }
-  const hasName = text.match(/name "(.*?)"/gi)
-  const hasAssign = text.match(/assign <(.*?)>/gi)
-  const hasType = text.match(/type \d/gi)
-  const hasBoard = text.match(/board "(.*?)"/gi)
-  const isHelp = text.match(/--help|--h/gi)
-  if(isHelp){
-    return replyWrongPattern(action, 'help')
-  }
-  if (hasName) {
-    const name = hasName[0].replace(/"|name| /g, '')
-    let assignId
-    let type
-    let board
-    if(hasBoard){
-      board = hasBoard[0].replace(/ |board|"/g, '')
-    }
-    if(hasAssign){
-      assignId = hasAssign[0].replace(/<|>|@| |assign/g, '')
-    }
-    if(hasType){
-      type = hasType[0].replace(/ |type/g, '')
-    }
-    if(type && !assignId){
-      return replyWrongPattern(action, 'missing_id')
-    }
 
-    return reply(action, JSON.stringify({name, assignId, type, board}))
+  const helpRE = new RegExp(`\^<@${getBotUserId(action)}>\\s+help|h\$`, 'gi');
+  const isHelp = text.match(helpRE);
+
+  if (isHelp) {
+    return replyWrongPattern(action, 'help');
   }
-  return replyWrongPattern(action, 'missing_require')
-}
+
+  const matchName = text.match(/name "(.*?)"/gi);
+  if (matchName) {
+    return createTask(action, matchName);
+  }
+};
+
+export const createTask = async (action, matchName) => {
+  const { text, channel } = action.payload;
+
+  const hasAssign = text.match(/assign\s(<@\w.*> ?)+/gi);
+  const hasType = text.match(/type \d/gi);
+  const hasBoard = text.match(/board "(.*?)"/gi);
+
+  const name = _.trim(matchName[0].replace(/"|name/g, ''));
+  let board = 'TECH';
+  let assignIds = [];
+  let type;
+  if (hasBoard) {
+    board = _.trim(hasBoard[0].replace(/board|"/g, ''));
+  }
+
+  if (_.get(hasAssign, 'length')) {
+    const matchText = hasAssign[0];
+    assignIds = getSlackIdsFromMessage(matchText);
+  }
+  if (hasType) {
+    type = _.trim(hasType[0].replace(/type/g, ''));
+  }
+
+  if (+type === 3 && !_.get(assignIds, 'length')) {
+    return replyWrongPattern(action, 'missing_id');
+  }
+
+  if (_.get(assignIds, 'length')) {
+    const matchAssignUser = await User.find({ idSlack: { $in: assignIds } })
+      .select('idTrello')
+      .lean();
+    assignIds = _.map(matchAssignUser, 'idTrello');
+  }
+
+  const matchBoard = await Board.findOne({ code: board })
+    .populate('defaultList', 'idList')
+    .populate('specialLabels.label', 'idLabel')
+    .lean();
+
+  const matchLabel = _.find(_.get(matchBoard, 'specialLabels'), label => {
+    return label.code === +type;
+  });
+
+  let labels = [];
+  if (matchLabel) {
+    labels = [_.get(matchLabel, 'label.idLabel')];
+  }
+
+  const card = await createCard({
+    name,
+    idList: matchBoard.defaultList.idList,
+    idMembers: assignIds,
+    labels,
+  });
+
+  const resCard = await cardController.create({
+    ...card,
+    threadTs: getThreadTS(action),
+    channel,
+  });
+
+  if (!resCard) {
+    return reply(action, 'Có lỗi hok mong mún :<');
+  }
+
+  const messages = await getConversation({ channel, ts: getThreadTS(action) });
+
+  let message = _.map(messages, 'text').join('\n');
+  const transformMessage = await replaceIdSlack(message);
+  console.log(transformMessage);
+  return Promise.all([
+    reply(
+      action,
+      [
+        `:ok_hand: Tạo card thành công!`,
+        `:card_index: Id Card: ${card.shortLink}`,
+        `:link: Link: ${card.shortUrl}`,
+        `${
+          hasAssign
+            ? `:bust_in_silhouette: Assign: ${hasAssign
+                .join('')
+                .replace('assign', '')}`
+            : ''
+        }`,
+      ].join('\n'),
+    ),
+    postReacts({
+      channel,
+      ts: getThreadTS(action),
+      reacts: ['card_index'],
+    }),
+    addComment({ idCard: resCard.idCard, text: transformMessage }),
+    createWebhook({
+      idModel: card.id,
+      description: card.mshortUrl,
+      callbackURL: 'http://4385195d2f3d.ngrok.io/webhook/trello',
+    }),
+  ]);
+};

@@ -1,6 +1,6 @@
-import { reply } from '../../helper.js'
+import { reply } from '../../helper.js';
 
-export const mentionHandler = async (action) => {
+export const mentionHandler = async action => {
   // handle mention of tags
-  return reply(action, 'handle tags')
-}
+  return reply(action, 'handle tags');
+};
