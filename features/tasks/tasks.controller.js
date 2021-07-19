@@ -86,8 +86,8 @@ export const createTask = async (action, matchName) => {
       .lean();
     assignIds = _.map(matchAssignUser, 'idTrello');
   }
-
-  const matchBoard = await Board.findOne({ code: board })
+  const boardRegex = new RegExp(`\^${board}\$`, 'gi');
+  const matchBoard = await Board.findOne({ code: boardRegex })
     .populate('defaultList', 'idList')
     .populate('specialLabels.label', 'idLabel')
     .lean();
