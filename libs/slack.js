@@ -14,39 +14,59 @@ export const app = new App({
   LogLevel: LogLevel.INFO,
 });
 export const getConversation = async ({ channel, ts }) => {
-  const thread = await app.client.conversations.replies({
-    channel,
-    ts,
-  });
-  return thread.messages;
+  try {
+    const thread = await app.client.conversations.replies({
+      channel,
+      ts,
+    });
+    return thread.messages;
+  } catch (error) {
+    throw error;
+  }
 };
 export const getUserInfo = async user => {
-  const res = await app.client.users.info({
-    user,
-  });
-  if (!res.ok) {
-    throw new Error(res.error);
+  try {
+    const res = await app.client.users.info({
+      user,
+    });
+    if (!res.ok) {
+      throw new Error(res.error);
+    }
+    return res.user;
+  } catch (error) {
+    throw error;
   }
-  return res.user;
 };
 
 export const postReacts = async ({ channel, ts, reacts }) => {
-  return Promise.all(
-    _.map(reacts, react => {
-      return app.client.reactions.add({ channel, timestamp: ts, name: react });
-    }),
-  );
+  try {
+    return Promise.all(
+      _.map(reacts, react => {
+        return app.client.reactions.add({
+          channel,
+          timestamp: ts,
+          name: react,
+        });
+      }),
+    );
+  } catch (error) {
+    throw error;
+  }
 };
 export const getBotInfo = async botId => {
   return app.client.bots.info({ bot: botId });
 };
 
 export const replyInThread = async ({ channel, text, thread_ts }) => {
-  return app.client.chat.postMessage({
-    channel,
-    text,
-    thread_ts,
-  });
+  try {
+    return app.client.chat.postMessage({
+      channel,
+      text,
+      thread_ts,
+    });
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const handleChangeDueDate = async ({ due, name, type, id }) => {
