@@ -11,6 +11,7 @@ export default {
     port: process.env.DB_PORT || 27017,
     host: process.env.DB_HOST || 'localhost',
     name: process.env.DB_NAME || 'thunder-bolt',
+    url: process.env.DB_URL || 'locahost:27017/thunder-bolt',
   },
   slack: {
     token: process.env.SLACK_BOT_TOKEN,
