@@ -203,9 +203,9 @@ const listBoard = async action => {
     );
   }
 
-  const boardsText = _.map(boards, 'code').join(', ');
+  const boardsText = _.sortBy(_.map(boards, 'code')).join('\n');
   return reply(
     action,
-    `<@${getMentionUser(action)}> Danh sách board hiện có: *${boardsText}*`,
+    `<@${getMentionUser(action)}> Danh sách board hiện có:\n *${boardsText}*`,
   );
 };
