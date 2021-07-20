@@ -103,6 +103,13 @@ export const createTask = async (action, matchName) => {
       const matchAssignUser = await User.find({ idSlack: { $in: assignIds } })
         .select('idTrello')
         .lean();
+      if (!matchAssignUser.length) {
+        throw new Error(
+          `<@${getMentionUser(
+            action,
+          )}> :warning: Không tìm thấy người dùng trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
+        );
+      }
       assignIds = _.map(matchAssignUser, 'idTrello');
     }
     const boardRegex = new RegExp(`\^${board}\$`, 'gi');
@@ -114,7 +121,9 @@ export const createTask = async (action, matchName) => {
       throw new Error(
         `<@${getMentionUser(
           action,
-        )}> :warning: Không tìm thấy board trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
+        )}> :warning: Không tìm thấy board trong CSDL!\nSử dụng lệnh: (<@${getBotUserId(
+          action,
+        )}> boards) để xem các bảng hiện có!`,
       );
     }
 
@@ -203,9 +212,13 @@ const listBoard = async action => {
     );
   }
 
-  const boardsText = _.sortBy(_.map(boards, 'code')).join('\n');
+  const boardsText = _.sortBy(
+    _.map(boards, board => {
+      return `*${_.get(board, 'code')}*`;
+    }),
+  ).join('\n');
   return reply(
     action,
-    `<@${getMentionUser(action)}> Danh sách board hiện có:\n *${boardsText}*`,
+    `<@${getMentionUser(action)}> Danh sách board hiện có:\n ${boardsText}`,
   );
 };
