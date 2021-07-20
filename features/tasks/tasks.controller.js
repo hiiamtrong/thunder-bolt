@@ -105,9 +105,7 @@ export const createTask = async (action, matchName) => {
         .lean();
       if (!matchAssignUser.length) {
         throw new Error(
-          `<@${getMentionUser(
-            action,
-          )}> :warning: Không tìm thấy người dùng trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
+          `:warning: Không tìm thấy người dùng trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
         );
       }
       assignIds = _.map(matchAssignUser, 'idTrello');
@@ -119,11 +117,9 @@ export const createTask = async (action, matchName) => {
       .lean();
     if (!matchBoard) {
       throw new Error(
-        `<@${getMentionUser(
+        `:warning: Không tìm thấy board trong CSDL!\nSử dụng lệnh: <@${getBotUserId(
           action,
-        )}> :warning: Không tìm thấy board trong CSDL!\nSử dụng lệnh: (<@${getBotUserId(
-          action,
-        )}> boards) để xem các bảng hiện có!`,
+        )}> boards để xem các bảng hiện có!`,
       );
     }
 
@@ -214,7 +210,7 @@ const listBoard = async action => {
 
   const boardsText = _.sortBy(
     _.map(boards, board => {
-      return `*${_.get(board, 'code')}*`;
+      return `*• ${_.get(board, 'code')}*`;
     }),
   ).join('\n');
   return reply(
