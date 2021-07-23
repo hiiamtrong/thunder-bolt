@@ -49,7 +49,7 @@ export const mentionHandler = async action => {
       return replyWrongPattern(action, 'help');
     }
 
-    const matchName = text.match(/card "(.*?)"/gi);
+    const matchName = text.match(/card ["““](.*?)["””]/gi);
     if (matchName) {
       return createTask(action, matchName);
     }
@@ -76,14 +76,15 @@ export const createTask = async (action, matchName) => {
 
     const hasAssign = text.match(/assign\s(<@\w.*> ?)+/gi);
     const hasType = text.match(/type \d/gi);
-    const hasBoard = text.match(/board "(.*?)"/gi);
+    const hasBoard = text.match(/board ["“”](.*?)["“”]/gi);
 
-    const name = _.trim(matchName[0].replace(/"|card/g, ''));
+    const name = _.trim(matchName[0].replace(/"“”|card/g, ''));
     let board = 'TECH';
     let assignIds = [];
     let type;
+
     if (hasBoard) {
-      board = _.trim(hasBoard[0].replace(/board|"/g, ''));
+      board = _.trim(hasBoard[0].replace(/board|"“”/g, ''));
     }
 
     if (_.get(hasAssign, 'length')) {
@@ -110,6 +111,7 @@ export const createTask = async (action, matchName) => {
       }
       assignIds = _.map(matchAssignUser, 'idTrello');
     }
+
     const boardRegex = new RegExp(`\^${board}\$`, 'gi');
     const matchBoard = await Board.findOne({ code: boardRegex })
       .populate('defaultList', 'idList')
