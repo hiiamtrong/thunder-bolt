@@ -78,13 +78,13 @@ export const createTask = async (action, matchName) => {
     const hasType = text.match(/type \d/gi);
     const hasBoard = text.match(/board ["“”](.*?)["“”]/gi);
 
-    const name = _.trim(matchName[0].replace(/"“”|card/g, ''));
+    const name = _.trim(matchName[0].replace(/["“”]|card/g, ''));
     let board = 'TECH';
     let assignIds = [];
     let type;
 
     if (hasBoard) {
-      board = _.trim(hasBoard[0].replace(/board|"“”/g, ''));
+      board = _.trim(hasBoard[0].replace(/board|["“”]/g, ''));
     }
 
     if (_.get(hasAssign, 'length')) {
