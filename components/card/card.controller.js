@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
-import Card from './card.model.js';
+import mongoose from 'mongoose';
+const Card = mongoose.model('Card');
 export default {
   create: asyncHandler(async body => {
     const { id, name, desc, shortUrl, threadTs, channel } = body;

@@ -1,16 +1,23 @@
 import _ from 'lodash';
-import Board from '../../components/board/board.model.js';
+import mongoose from 'mongoose';
+const Board = mongoose.model('Board');
 import boardsController from '../../components/board/boards.controller.js';
 import cardController from '../../components/card/card.controller.js';
-import User from '../../components/user/user.model.js';
+import config from '../../configs/config.js';
 import { getConversation, postReacts } from '../../libs/slack.js';
-import { addComment, createCard, createWebhook } from '../../libs/trello.js';
+import {
+  addAssignUser,
+  addComment,
+  createCard,
+  createWebhook,
+} from '../../libs/trello.js';
 import {
   getBotUserId,
   getMentionUser,
   getSlackIdsFromMessage,
   getThreadTS,
   helperMenu,
+  makeMap,
   replaceIdSlack,
   reply,
 } from '../../ultis/helper.js';
@@ -80,7 +87,7 @@ export const createTask = async (action, matchName) => {
 
     const name = _.trim(matchName[0].replace(/["“”]|card/g, ''));
     let board = 'TECH';
-    let assignIds = [];
+    let assignId = null;
     let type;
 
     if (hasBoard) {
@@ -89,27 +96,15 @@ export const createTask = async (action, matchName) => {
 
     if (_.get(hasAssign, 'length')) {
       const matchText = hasAssign[0];
-      assignIds = getSlackIdsFromMessage(matchText);
+      assignId = _.get(getSlackIdsFromMessage(matchText), '0');
     }
 
     if (hasType) {
       type = _.trim(hasType[0].replace(/type/g, ''));
     }
 
-    if (+type === 3 && !_.get(assignIds, 'length')) {
+    if (+type === 3 && !_.get(assignId, 'length')) {
       return replyWrongPattern(action, 'missing_id');
-    }
-
-    if (_.get(assignIds, 'length')) {
-      const matchAssignUser = await User.find({ idSlack: { $in: assignIds } })
-        .select('idTrello')
-        .lean();
-      if (!matchAssignUser.length) {
-        throw new Error(
-          `:warning: Không tìm thấy người dùng trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
-        );
-      }
-      assignIds = _.map(matchAssignUser, 'idTrello');
     }
 
     const boardRegex = new RegExp(`\^${board}\$`, 'gi');
@@ -137,7 +132,6 @@ export const createTask = async (action, matchName) => {
     const card = await createCard({
       name,
       idList: _.get(matchBoard, 'defaultList.idList'),
-      idMembers: assignIds,
       labels,
     });
 
@@ -158,27 +152,14 @@ export const createTask = async (action, matchName) => {
       channel,
       ts: getThreadTS(action),
     });
-
-    let message = _.map(messages, 'text').join('\n');
+    let message = _.map(messages, message => {
+      const { user, text } = message;
+      return `<@${user}>: ${text}`;
+    }).join('\n');
     const transformMessage = await replaceIdSlack(message);
 
     return Promise.all([
-      reply(
-        action,
-        [
-          `<@${getMentionUser(action)}>`,
-          `:ok_hand: Tạo card thành công!`,
-          `:card_index: Id Card: ${card.shortLink}`,
-          `:link: Link: ${card.shortUrl}`,
-          `${
-            hasAssign
-              ? `:bust_in_silhouette: Assign: ${hasAssign
-                  .join('')
-                  .replace('assign', '')}`
-              : ''
-          }`,
-        ].join('\n'),
-      ),
+      replyAfterCreate(action, card, hasAssign),
       postReacts({
         channel,
         ts: getThreadTS(action),
@@ -188,9 +169,20 @@ export const createTask = async (action, matchName) => {
       createWebhook({
         idModel: card.id,
         description: card.mshortUrl,
-        callbackURL: 'https://bot-tech.4-handy.com/webhook/trello',
+        callbackURL: `${config.trello.callbackBaseURL}/webhook/trello/cards`,
       }),
-    ]);
+      addAssignUser({ idCard: resCard.idCard, user: assignId }),
+    ]).catch(error => {
+      if (error.message.includes('already_reacted')) {
+        return;
+      }
+      return reply(
+        action,
+        `<@${getMentionUser(action)}> ${
+          error.message || JSON.stringify(error)
+        }`,
+      );
+    });
   } catch (error) {
     return reply(
       action,
@@ -200,7 +192,7 @@ export const createTask = async (action, matchName) => {
 };
 
 const listBoard = async action => {
-  const boards = await boardsController.list();
+  const [boards, trelloBoards] = await boardsController.list();
   if (!boards.length) {
     return reply(
       action,
@@ -209,9 +201,13 @@ const listBoard = async action => {
       )}> :warning: Chưa có bảng nào trong cơ sở dữ liệu, liên hệ team Tech để thêm nhé !`,
     );
   }
-
+  const trelloBoardsMap = makeMap(trelloBoards, 'id');
   const boardsText = _.sortBy(
     _.map(boards, board => {
+      const matchBoardTrello = trelloBoardsMap[_.get(board, 'idBoard')];
+      if (matchBoardTrello) {
+        return `*• <${matchBoardTrello.url}|${_.get(board, 'code')}>*`;
+      }
       return `*• ${_.get(board, 'code')}*`;
     }),
   ).join('\n');
@@ -220,3 +216,22 @@ const listBoard = async action => {
     `<@${getMentionUser(action)}> Danh sách board hiện có:\n ${boardsText}`,
   );
 };
+
+function replyAfterCreate(action, card, hasAssign) {
+  return reply(
+    action,
+    [
+      `<@${getMentionUser(action)}>`,
+      `:ok_hand: Tạo card thành công!`,
+      `:card_index: Id Card: ${card.shortLink}`,
+      `:link: Link: ${card.shortUrl}`,
+      `${
+        hasAssign
+          ? `:bust_in_silhouette: Assign: ${hasAssign
+              .join('')
+              .replace('assign', '')}`
+          : ''
+      }`,
+    ].join('\n'),
+  );
+}

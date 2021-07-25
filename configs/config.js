@@ -21,5 +21,7 @@ export default {
   trello: {
     apiKey: process.env.TRELLO_APPLICATION_KEY,
     token: process.env.TRELLO_TOKEN,
+    botId: process.env.TRELLO_BOT_ID,
+    callbackBaseURL: process.env.TRELLO_WEBHOOK_CALLBACK,
   },
 };
