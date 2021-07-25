@@ -1,16 +1,18 @@
 import bolt from '@slack/bolt';
+import dayjs from 'dayjs';
+import _ from 'lodash';
+import mongoose from 'mongoose';
 import config from '../configs/config.js';
 import receiver from '../webhooks/index.js';
-import dayjs from 'dayjs';
-import Card from '../components/card/card.model.js';
+const Card = mongoose.model('Card');
+
 const { App, LogLevel } = bolt;
-import _ from 'lodash';
 
 export const app = new App({
   token: config.slack.token,
   socketMode: false,
   receiver,
-  developerMode: config.app.environment === 'dev' ? true : false,
+  // developerMode: config.app.environment === 'dev' ? true : false,
   LogLevel: LogLevel.INFO,
 });
 export const getConversation = async ({ channel, ts }) => {
@@ -33,6 +35,20 @@ export const getUserInfo = async user => {
       throw new Error(res.error);
     }
     return res.user;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserProfile = async user => {
+  try {
+    const res = await app.client.users.profile.get({
+      user,
+    });
+    if (!res.ok) {
+      throw new Error(res.error);
+    }
+    return res.profile;
   } catch (error) {
     throw error;
   }

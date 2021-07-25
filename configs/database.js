@@ -24,8 +24,9 @@ process.on('SIGINT', () => {
   logger.info('Database Connection closed due to NodeJs process termination');
   process.exit(0);
 });
-import('../components/list/list.model.js');
-import('../components/board/board.model.js');
-import('../components/user/user.model.js');
-import('../components/card/card.model.js');
-import('../components/label/label.model.js');
+import '../components/list/list.model.js';
+import '../components/board/board.model.js';
+import '../components/user/user.model.js';
+import '../components/card/card.model.js';
+import '../components/label/label.model.js';
+import '../components/webhook/webhook.model.js';
