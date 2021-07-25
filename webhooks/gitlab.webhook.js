@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { handlePostWebhook } from '../libs/trello.js';
+import { getCardFromLink, handlePostWebhookCard } from '../libs/trello.js';
 const router = Router();
 router.post('/webhook/gitlab', async (req, res) => {
   // You're working with an express req and res now.
@@ -11,13 +11,13 @@ router.post('/webhook/gitlab', async (req, res) => {
 
   const card = await getCardFromLink(cardTrello + '.json');
   if (work_in_progress) {
-    await handlePostWebhook({ id: card.id, type: 'DRAFT' });
+    await handlePostWebhookCard({ id: card.id, type: 'DRAFT' });
   }
   if (state === 'opened') {
-    await handlePostWebhook({ id: card.id, type: 'OPENED' });
+    await handlePostWebhookCard({ id: card.id, type: 'OPENED' });
   }
   if (state === 'merged') {
-    await handlePostWebhook({ id: card.id, type: 'MERGED' });
+    await handlePostWebhookCard({ id: card.id, type: 'MERGED' });
   }
   res.json(req.body);
 });
