@@ -3,6 +3,7 @@ import _ from 'lodash';
 import mongoose from 'mongoose';
 import Trello from 'trello';
 import config from '../configs/config.js';
+import { reply } from '../ultis/helper.js';
 import { replyInThread } from './slack.js';
 const Card = mongoose.model('Card');
 const List = mongoose.model('List');
@@ -48,32 +49,104 @@ export const addComment = async ({ idCard, text }) => {
   }
 };
 
-export const addAssignUser = async ({ idCard, user }) => {
+export const addAssignUser = async ({ idCard, user, action }) => {
   try {
-    if (!user) {
-      throw new Error(
-        ':warning: Chưa có assign users nên mình chưa thêm vào card nhé ! ',
-      );
-    }
-
     const matchAssignUser = await User.findOne({ idSlack: user })
       .select('idTrello')
       .lean();
 
     if (_.get(matchAssignUser, 'idTrello')) {
       return trello.addMemberToCard(idCard, matchAssignUser.idTrello);
-    } else {
-      throw new Error(
-        `:warning: Không tìm thấy người dùng trong CSDL! Vui lòng liên hệ team Tech để thêm nhé`,
-      );
     }
-
-    // const slackUser = await getUserProfile(user);
-    // if (!slackUser) {
-    //   throw new Error(
-    //     ':warning: Không tìm thấy assign users nên mình chưa thêm vào card nhé ! ',
-    //   );
-    // }
+    const users = await User.find({ idslack: { $exists: false } }).lean();
+    return reply(action, 'Sync trello and slack user', [
+      {
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: ':warning: Chưa có assign users nên mình chưa thêm vào card nhé !\nChọn *Trello user* và *Slack user* sau đó bấm *Add* để thêm nhé',
+        },
+      },
+      {
+        block_id: 'card_id',
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*Card Id* :*${idCard}*`,
+        },
+      },
+      {
+        block_id: 'trello_user',
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*Trello User*',
+        },
+        accessory: {
+          type: 'static_select',
+          placeholder: {
+            type: 'plain_text',
+            text: 'Select an item',
+            emoji: true,
+          },
+          options: _.map(users, user => {
+            return {
+              text: {
+                type: 'plain_text',
+                text: user.fullName,
+                emoji: true,
+              },
+              value: user.idTrello,
+            };
+          }),
+          action_id: 'select_user_trello',
+        },
+      },
+      {
+        block_id: 'slack_user',
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: '*Slack User*',
+        },
+        accessory: {
+          type: 'users_select',
+          placeholder: {
+            type: 'plain_text',
+            text: 'Select a user',
+            emoji: true,
+          },
+          action_id: 'select_user_slack',
+        },
+      },
+      {
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              emoji: true,
+              text: 'Add',
+            },
+            style: 'primary',
+            value: 'add',
+            action_id: 'add_assign_user',
+          },
+          {
+            type: 'button',
+            text: {
+              type: 'plain_text',
+              emoji: true,
+              text: 'Cancel',
+            },
+            style: 'danger',
+            value: 'cancel',
+            action_id: 'reject_add_assign_user',
+          },
+        ],
+      },
+    ]);
   } catch (error) {
     throw error;
   }
