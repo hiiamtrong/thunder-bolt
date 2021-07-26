@@ -158,7 +158,7 @@ export const createTask = async (action, matchName) => {
     }).join('\n');
     const transformMessage = await replaceIdSlack(message);
 
-    return Promise.all([
+    const shouldDo = [
       replyAfterCreate(action, card, hasAssign),
       postReacts({
         channel,
@@ -171,8 +171,12 @@ export const createTask = async (action, matchName) => {
         description: card.mshortUrl,
         callbackURL: `${config.trello.callbackBaseURL}/webhook/trello/cards`,
       }),
-      addAssignUser({ idCard: resCard.idCard, user: assignId }),
-    ]).catch(error => {
+    ];
+    if (hasAssign) {
+      shouldDo.push(addAssignUser({ idCard: resCard.idCard, user: assignId }));
+    }
+
+    return Promise.all(shouldDo).catch(error => {
       if (error.message.includes('already_reacted')) {
         return;
       }
