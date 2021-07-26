@@ -24,9 +24,10 @@ services:
 
   mongo:
     image: mongo
+    command: [--auth]
     restart: unless-stopped
     volumes:
-      - mongodata:/data/db
+      - /var/lib/mongodb:/data/db
     container_name: thunder-bolt-mongo
     networks:
       - thunder-bolt
