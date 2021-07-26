@@ -4,8 +4,9 @@ import _ from 'lodash';
 import mongoose from 'mongoose';
 import config from '../configs/config.js';
 import receiver from '../webhooks/index.js';
+import { trello } from './trello.js';
 const Card = mongoose.model('Card');
-
+const User = mongoose.model('User');
 const { App, LogLevel } = bolt;
 
 export const app = new App({
@@ -110,4 +111,67 @@ export const handleChangeDueDate = async ({ due, name, type, id }) => {
     thread_ts: card.threadTs,
   });
 };
+
+export const handleAddAssignUser = async action => {
+  const trelloUser = _.get(
+    action,
+    'body.state.values.trello_user.select_user_trello.selected_option.value',
+  );
+  const slackUser = _.get(
+    action,
+    'body.state.values.slack_user.select_user_slack.selected_user',
+  );
+
+  const cardSection = _.find(_.get(action, 'body.message.blocks'), block => {
+    return block.block_id === 'card_id';
+  });
+
+  const messageTs = _.get(action, 'body.container.message_ts');
+  console.log(_.get(action, 'body'));
+  const channel = _.get(action, 'body.container.channel_id');
+
+  if (!slackUser || !trelloUser) {
+    return action.client.chat.update({
+      channel,
+      ts: messageTs,
+      text: ':warning: Chưa chọn trello user hoặc slack user !',
+      blocks: [
+        ...action.body.message.blocks,
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: ':x: Chưa chọn trello user hoặc slack user !',
+          },
+        },
+      ],
+    });
+  }
+
+  const cardId = _.replace(
+    _.get(cardSection, 'text.text').match(/:\*(\w+)\*/gi),
+    /[\*:]/gi,
+    '',
+  );
+
+  await Promise.all([
+    User.updateOne({ idTrello: trelloUser }, { $set: { idSlack: slackUser } }),
+    trello.addMemberToCard(cardId, trelloUser),
+    action.client.chat.update({
+      channel,
+      ts: messageTs,
+      text: ':white_check_mark: Đồng bộ người dùng thành công',
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: ':white_check_mark: Đồng bộ người dùng thành công',
+          },
+        },
+      ],
+    }),
+  ]);
+};
+
 export default app;

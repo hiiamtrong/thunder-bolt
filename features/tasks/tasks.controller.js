@@ -173,7 +173,13 @@ export const createTask = async (action, matchName) => {
       }),
     ];
     if (hasAssign) {
-      shouldDo.push(addAssignUser({ idCard: resCard.idCard, user: assignId }));
+      shouldDo.push(
+        addAssignUser({
+          idCard: resCard.idCard,
+          user: assignId,
+          action,
+        }),
+      );
     }
 
     return Promise.all(shouldDo).catch(error => {
