@@ -28,17 +28,19 @@ function replyWrongPattern(action, type) {
   switch (type) {
     case 'help':
     case 'missing_require':
-      return reply(action, helperMenu(action));
+      return reply({ action, text: helperMenu(action), reply_broadcast: true });
     case 'missing_id':
-      return reply(
+      return reply({
         action,
-        `<@${mentionUser}> :warning: Type *critical* yêu cầu assign`,
-      );
+        text: `<@${mentionUser}> :warning: Type *critical* yêu cầu assign`,
+        reply_broadcast: true,
+      });
     default:
-      return reply(
+      return reply({
         action,
-        `<@${mentionUser}> :warning: Lệnh không tồn tại, gõ h hoặc help để được hướng dẫn nhé`,
-      );
+        text: `<@${mentionUser}> :warning: Lệnh không tồn tại, gõ h hoặc help để được hướng dẫn nhé`,
+        reply_broadcast: true,
+      });
   }
 }
 
@@ -71,7 +73,7 @@ export const mentionHandler = async action => {
 
     return replyWrongPattern(action);
   } catch (error) {
-    return reply(action, error.message);
+    return reply({ action, text: error.message, reply_broadcast: true });
   }
   // handle mention of task
   // chi muon ngay nang len de dc gap em, quen di moi uu phien moi khi em ve
@@ -142,10 +144,10 @@ export const createTask = async (action, matchName) => {
     });
 
     if (!resCard) {
-      return reply(
+      return reply({
         action,
-        `<@${getMentionUser(action)}> :warning: Có lỗi xảy ra :<`,
-      );
+        text: `<@${getMentionUser(action)}> :warning: Có lỗi xảy ra :<`,
+      });
     }
 
     const messages = await getConversation({
@@ -186,30 +188,32 @@ export const createTask = async (action, matchName) => {
       if (error.message.includes('already_reacted')) {
         return;
       }
-      return reply(
+      return reply({
         action,
-        `<@${getMentionUser(action)}> ${
+        text: `<@${getMentionUser(action)}> ${
           error.message || JSON.stringify(error)
         }`,
-      );
+      });
     });
   } catch (error) {
-    return reply(
+    return reply({
       action,
-      `<@${getMentionUser(action)}> ${error.message || JSON.stringify(error)}`,
-    );
+      text: `<@${getMentionUser(action)}> ${
+        error.message || JSON.stringify(error)
+      }`,
+    });
   }
 };
 
 const listBoard = async action => {
   const [boards, trelloBoards] = await boardsController.list();
   if (!boards.length) {
-    return reply(
+    return reply({
       action,
-      `<@${getMentionUser(
+      text: `<@${getMentionUser(
         action,
       )}> :warning: Chưa có bảng nào trong cơ sở dữ liệu, liên hệ team Tech để thêm nhé !`,
-    );
+    });
   }
   const trelloBoardsMap = makeMap(trelloBoards, 'id');
   const boardsText = _.sortBy(
@@ -221,16 +225,18 @@ const listBoard = async action => {
       return `*• ${_.get(board, 'code')}*`;
     }),
   ).join('\n');
-  return reply(
+  return reply({
     action,
-    `<@${getMentionUser(action)}> Danh sách board hiện có:\n ${boardsText}`,
-  );
+    text: `<@${getMentionUser(
+      action,
+    )}> Danh sách board hiện có:\n ${boardsText}`,
+  });
 };
 
 function replyAfterCreate(action, card, hasAssign) {
-  return reply(
+  return reply({
     action,
-    [
+    text: [
       `<@${getMentionUser(action)}>`,
       `:ok_hand: Tạo card thành công!`,
       `:card_index: Id Card: ${card.shortLink}`,
@@ -243,5 +249,5 @@ function replyAfterCreate(action, card, hasAssign) {
           : ''
       }`,
     ].join('\n'),
-  );
+  });
 }

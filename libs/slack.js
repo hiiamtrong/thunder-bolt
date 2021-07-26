@@ -145,6 +145,7 @@ export const handleAddAssignUser = async action => {
           },
         },
       ],
+      reply_broadcast: true,
     });
   }
 
@@ -170,6 +171,7 @@ export const handleAddAssignUser = async action => {
           },
         },
       ],
+      reply_broadcast: true,
     }),
   ]);
 };

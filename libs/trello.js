@@ -59,94 +59,99 @@ export const addAssignUser = async ({ idCard, user, action }) => {
       return trello.addMemberToCard(idCard, matchAssignUser.idTrello);
     }
     const users = await User.find({ idSlack: { $exists: false } }).lean();
-    return reply(action, 'Sync trello and slack user', [
-      {
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: ':warning: Chưa có assign users nên mình chưa thêm vào card nhé !\nChọn *Trello user* và *Slack user* sau đó bấm *Add* để thêm nhé',
-        },
-      },
-      {
-        block_id: 'card_id',
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: `*Card Id* :*${idCard}*`,
-        },
-      },
-      {
-        block_id: 'trello_user',
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: '*Trello User*',
-        },
-        accessory: {
-          type: 'static_select',
-          placeholder: {
-            type: 'plain_text',
-            text: 'Select an item',
-            emoji: true,
+    return reply({
+      action,
+      text: 'Sync trello and slack user',
+      blocks: [
+        {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: ':warning: Chưa có assign users nên mình chưa thêm vào card nhé !\nChọn *Trello user* và *Slack user* sau đó bấm *Add* để thêm nhé',
           },
-          options: _.map(users, user => {
-            return {
+        },
+        {
+          block_id: 'card_id',
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*Card Id* :*${idCard}*`,
+          },
+        },
+        {
+          block_id: 'trello_user',
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*Trello User*',
+          },
+          accessory: {
+            type: 'static_select',
+            placeholder: {
+              type: 'plain_text',
+              text: 'Select an item',
+              emoji: true,
+            },
+            options: _.map(users, user => {
+              return {
+                text: {
+                  type: 'plain_text',
+                  text: user.fullName,
+                  emoji: true,
+                },
+                value: user.idTrello,
+              };
+            }),
+            action_id: 'select_user_trello',
+          },
+        },
+        {
+          block_id: 'slack_user',
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: '*Slack User*',
+          },
+          accessory: {
+            type: 'users_select',
+            placeholder: {
+              type: 'plain_text',
+              text: 'Select a user',
+              emoji: true,
+            },
+            action_id: 'select_user_slack',
+          },
+        },
+        {
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
               text: {
                 type: 'plain_text',
-                text: user.fullName,
                 emoji: true,
+                text: 'Add',
               },
-              value: user.idTrello,
-            };
-          }),
-          action_id: 'select_user_trello',
-        },
-      },
-      {
-        block_id: 'slack_user',
-        type: 'section',
-        text: {
-          type: 'mrkdwn',
-          text: '*Slack User*',
-        },
-        accessory: {
-          type: 'users_select',
-          placeholder: {
-            type: 'plain_text',
-            text: 'Select a user',
-            emoji: true,
-          },
-          action_id: 'select_user_slack',
-        },
-      },
-      {
-        type: 'actions',
-        elements: [
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              emoji: true,
-              text: 'Add',
+              style: 'primary',
+              value: 'add',
+              action_id: 'add_assign_user',
             },
-            style: 'primary',
-            value: 'add',
-            action_id: 'add_assign_user',
-          },
-          {
-            type: 'button',
-            text: {
-              type: 'plain_text',
-              emoji: true,
-              text: 'Cancel',
+            {
+              type: 'button',
+              text: {
+                type: 'plain_text',
+                emoji: true,
+                text: 'Cancel',
+              },
+              style: 'danger',
+              value: 'cancel',
+              action_id: 'reject_add_assign_user',
             },
-            style: 'danger',
-            value: 'cancel',
-            action_id: 'reject_add_assign_user',
-          },
-        ],
-      },
-    ]);
+          ],
+        },
+      ],
+      reply_broadcast: true,
+    });
   } catch (error) {
     throw error;
   }
