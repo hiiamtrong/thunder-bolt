@@ -1,0 +1,41 @@
+version: '3'
+services:
+  thunder-bolt:
+    build: .
+    restart: always
+    ports:
+      - 1235:1235
+    depends_on:
+      - mongo
+    networks:
+      - thunder-bolt
+    environment:
+      APP_NAME: ${APP_NAME}
+      PORT: ${PORT}
+      NODE_ENV: ${NODE_ENV}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET}
+      APP_TOKEN: ${APP_TOKEN}
+      TRELLO_APPLICATION_KEY: ${TRELLO_APPLICATION_KEY}
+      TRELLO_TOKEN: ${TRELLO_TOKEN}
+      TRELLO_BOT_ID: ${TRELLO_BOT_ID}
+      TRELLO_WEBHOOK_CALLBACK: ${TRELLO_WEBHOOK_CALLBACK}
+      DB_URL: mongodb://mongo:27017/thunder-bolt
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    volumes:
+      - mongodata:/data/db
+    container_name: thunder-bolt-mongo
+    networks:
+      - thunder-bolt
+    ports:
+      - '27117:27017'
+
+volumes:
+  mongodata:
+    name: mongodata
+networks:
+  thunder-bolt:
+    name: thunder-bolt

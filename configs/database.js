@@ -9,11 +9,12 @@ mongoose.connect(mongo.url, {
   useUnifiedTopology: true,
 });
 const { connection } = mongoose;
-
 connection.on('connected', () =>
   logger.info('Database Connection was Successful'),
 );
-connection.on('error', err => logger.error('Database Connection Failed' + err));
+connection.on('error', err =>
+  logger.error('Database Connection Failed ' + err),
+);
 
 connection.on('disconnected', () =>
   logger.info('Database Connection Disconnected'),

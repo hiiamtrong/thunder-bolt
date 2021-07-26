@@ -12,8 +12,12 @@ const receiver = new bolt.ExpressReceiver({
 
 receiver.router.use(express.json());
 receiver.router.use(express.urlencoded({ extended: true }));
+receiver.app.get('/', (req, res) => {
+  res.send('<h2>⚡️ Thunder Bolt app is running</h2>');
+});
 receiver.router.use(gitlab);
 receiver.router.use(trello);
+
 receiver.router.use(errorhandler({ log: errorNotification }));
 
 function errorNotification(err, str, req) {
