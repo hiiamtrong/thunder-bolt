@@ -58,7 +58,7 @@ export const addAssignUser = async ({ idCard, user, action }) => {
     if (_.get(matchAssignUser, 'idTrello')) {
       return trello.addMemberToCard(idCard, matchAssignUser.idTrello);
     }
-    const users = await User.find({ idslack: { $exists: false } }).lean();
+    const users = await User.find({ idSlack: { $exists: false } }).lean();
     return reply(action, 'Sync trello and slack user', [
       {
         type: 'section',
