@@ -1,11 +1,6 @@
 import _ from 'lodash';
 import { getUserInfo } from '../libs/slack.js';
-export const reply = async ({
-  action,
-  text,
-  blocks,
-  reply_broadcast = false,
-}) => {
+export const reply = async ({ action, text, blocks }) => {
   const { client } = action;
   const { event } = action.body;
   let threadTs = getThreadTS(action);
@@ -15,7 +10,6 @@ export const reply = async ({
     text: text,
     thread_ts: threadTs,
     blocks,
-    reply_broadcast,
   });
 };
 export const getSlackIdsFromMessage = text => {
