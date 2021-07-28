@@ -150,7 +150,6 @@ export const addAssignUser = async ({ idCard, user, action }) => {
           ],
         },
       ],
-      reply_broadcast: true,
     });
   } catch (error) {
     throw error;
