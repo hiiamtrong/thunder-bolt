@@ -20,6 +20,7 @@ receiver.router.use(trello);
 
 receiver.router.use(errorhandler({ log: errorNotification }));
 
+// eslint-disable-next-line no-unused-vars
 function errorNotification(err, str, req) {
   return logger.error(err.stack || err.message || JSON.stringify(err));
 }
