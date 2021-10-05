@@ -3,14 +3,44 @@ import _ from 'lodash';
 import mongoose from 'mongoose';
 import Trello from 'trello';
 import config from '../configs/config.js';
-import { reply } from '../ultis/helper.js';
+import { makeMap, reply } from '../ultis/helper.js';
 import { replyInThread } from './slack.js';
 const Card = mongoose.model('Card');
 const List = mongoose.model('List');
 const User = mongoose.model('User');
+const Board = mongoose.model('Board')
 
 export const trello = new Trello(config.trello.apiKey, config.trello.token);
 
+export const getCards = async (code, targetLists) => {
+  //targetLists [todo, edit, done]
+  const board = await Board.findOne({code}).select('idBoard').lean()
+  if(!board) return []
+  let lists = await trello.getListsOnBoard(board.idBoard) 
+  lists = _.filter(lists, (list) => {
+    const convertedName = _.get(list, 'name', '').replace(/\s/g, '').toLowerCase()
+    return _.includes(targetLists, convertedName)
+  })
+  if(!lists.length) return []
+  let queries = []
+  const listsMap = makeMap(lists, 'id')
+  _.forEach(lists, (list) => {
+    queries.push(trello.getCardsOnList(list.id))
+  })
+  return Promise.all(queries).then(data => {
+    return {
+      cards: _.flatten(data),
+      listsMap
+    }
+  })
+  
+}
+
+export const getLists = async () => {
+  const board = await Board.findOne({code}).select('idBoard').lean()
+  if(!board) return []
+  return trello.getListsOnBoard(board.idBoard)
+}
 export const createCard = ({ name, idList, desc, labels }) => {
   try {
     const sample = {

@@ -26,6 +26,5 @@ app.action('add_assign_user', async action => {
 (async () => {
   const PORT = config.app.port || 3000;
   await app.start(PORT);
-
   console.log(`⚡️ Bolt app is running at port ${PORT}!`);
 })();
